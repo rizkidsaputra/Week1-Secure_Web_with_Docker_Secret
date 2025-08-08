@@ -1,0 +1,38 @@
+services:
+  frontend:
+    build: ./frontend
+    image: rizkidsaputra/frontend:week1
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    image: rizkidsaputra/backend:week1
+    ports:
+      - "3000:3000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    secrets:
+      - redis_password
+    depends_on:
+      - redis
+
+  redis:
+    build: ./redis
+    image: rizkidsaputra/redis:week1
+    secrets:
+      - redis_password
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+secrets:
+  redis_password:
+    file: ./secrets/redis_password.txt
+
+volumes:
+  redis-data:

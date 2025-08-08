@@ -1,0 +1,58 @@
+secrets:
+  redis_password:
+    external: true
+
+volumes:
+  redis-data:
+
+networks:
+  appnet:
+    driver: overlay
+
+services:
+  redis:
+    image: rizkidsaputra/redis:week1
+    command: >
+      sh -c 'redis-server --requirepass "$$(cat /run/secrets/redis_password)"'
+    secrets:
+      - redis_password
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - appnet
+    deploy:
+      replicas: 1
+
+  backend:
+    image: rizkidsaputra/backend:week1
+    ports:
+      - "3000:3000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD_FILE=/run/secrets/redis_password
+    secrets:
+      - redis_password
+    depends_on:
+      - redis
+    networks:
+      - appnet
+    deploy:
+      replicas: 1
+
+  frontend:
+    image: rizkidsaputra/frontend:week1
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - appnet
+    deploy:
+      replicas: 1
+
+
+
+
